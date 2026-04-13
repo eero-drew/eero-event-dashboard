@@ -1969,6 +1969,9 @@
                         const statusText = network.authenticated ? 'Authenticated' : 'Not Authenticated';
                         const activeText = network.active ? 'Active' : 'Inactive';
                         const activeColor = network.active ? '#4da6ff' : '#868e96';
+                        const stageLabel = (network.stage || 'production') === 'staging' ? 'Staging' : 'Production';
+                        const stageColor = (network.stage || 'production') === 'staging' ? '#ff922b' : '#51cf66';
+                        const stageChecked = (network.stage || 'production') === 'staging' ? 'checked' : '';
                         
                         networksHtml += `
                             <div style="background: rgba(0,40,80,.5); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(77,166,255,.2);">
@@ -1981,6 +1984,15 @@
                                         <div style="color: ${statusColor}; font-size: 12px;">${statusText}</div>
                                         <div style="color: ${activeColor}; font-size: 12px;">${activeText}</div>
                                     </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px; background: rgba(0,0,0,.2); border-radius: 6px;">
+                                    <span style="font-size: 12px; color: rgba(255,255,255,.7);">Environment:</span>
+                                    <label style="position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer;">
+                                        <input type="checkbox" ${stageChecked} onchange="toggleNetworkStage('${network.id}')" style="opacity: 0; width: 0; height: 0;">
+                                        <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: ${stageColor}; border-radius: 22px; transition: .3s;"></span>
+                                        <span style="position: absolute; top: 2px; left: ${stageChecked ? '20px' : '2px'}; width: 18px; height: 18px; background: white; border-radius: 50%; transition: .3s;"></span>
+                                    </label>
+                                    <span style="font-size: 12px; font-weight: bold; color: ${stageColor};">${stageLabel}</span>
                                 </div>
                                 <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                                     ${!network.authenticated ? `<button class="form-btn" style="padding: 4px 8px; font-size: 11px;" onclick="authenticateNetwork('${network.id}')">Authenticate with Email</button>` : ''}
@@ -2077,9 +2089,27 @@
             }
         }
         
+        async function toggleNetworkStage(networkId) {
+            try {
+                const response = await fetch(`/api/admin/networks/${networkId}/stage`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(data.message, "success");
+                    manageNetworks();
+                } else {
+                    showAlert(data.message, "error");
+                }
+            } catch (error) {
+                showAlert("Failed to toggle stage", "error");
+            }
+        }
+
         async function toggleNetwork(networkId) {
             try {
                 const response = await fetch(`/api/admin/networks/${networkId}/toggle`, {
+
                     method: "POST"
                 });
                 

@@ -673,6 +673,7 @@ def get_networks():
     for network in networks:
         network_id = network.get('id')
         network['authenticated'] = network_id in eero_api.network_tokens
+        network['stage'] = network.get('stage', 'production')
         
         # Get network name from API if available
         if network['authenticated']:
@@ -980,7 +981,8 @@ def add_network():
             'name': name,
             'email': email,
             'token': '',
-            'active': True
+            'active': True,
+            'stage': 'production'
         }
         
         networks.append(new_network)
@@ -1046,6 +1048,29 @@ def toggle_network(network_id):
                 if save_config(config):
                     status = 'enabled' if network['active'] else 'disabled'
                     return jsonify({'success': True, 'message': f'Network {network_id} {status}'})
+                
+                return jsonify({'success': False, 'message': 'Failed to save configuration'}), 500
+        
+        return jsonify({'success': False, 'message': 'Network not found'}), 404
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/networks/<network_id>/stage', methods=['POST'])
+def toggle_network_stage(network_id):
+    """Toggle network between production and staging"""
+    try:
+        config = load_config()
+        networks = config.get('networks', [])
+        
+        for network in networks:
+            if network.get('id') == network_id:
+                current = network.get('stage', 'production')
+                network['stage'] = 'staging' if current == 'production' else 'production'
+                config['networks'] = networks
+                
+                if save_config(config):
+                    return jsonify({'success': True, 'message': f'Network {network_id} set to {network["stage"]}', 'stage': network['stage']})
                 
                 return jsonify({'success': False, 'message': 'Failed to save configuration'}), 500
         
