@@ -1,4 +1,11 @@
-# Eero Event Dashboard v6.8.0
+# ⚠️ DEPRECATED — Eero Event Dashboard v6.8.0
+
+> **This version is deprecated.** The active version is v7.0.x at:
+> `~/Code/MiniRackDash/minirackdash/eero-event-dashboard-repo/`
+
+Old files have been moved to `deprecated/v6-eero-event-dashboard/`.
+
+---
 
 A comprehensive, mobile-responsive dashboard for monitoring multiple Eero networks with real-time device tracking, analytics, and data export capabilities.
 
