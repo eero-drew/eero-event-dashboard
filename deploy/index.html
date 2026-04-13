@@ -1822,7 +1822,7 @@
                     </div>
                     <div class="admin-info-item">
                         <span>API URL:</span>
-                        <span>${data.api_url}</span>
+                        <span>Per-network (see Manage Networks)</span>
                     </div>
                     <div class="admin-info-item">
                         <span>Timezone:</span>
@@ -1972,6 +1972,7 @@
                         const stageLabel = (network.stage || 'production') === 'staging' ? 'Staging' : 'Production';
                         const stageColor = (network.stage || 'production') === 'staging' ? '#ff922b' : '#51cf66';
                         const stageChecked = (network.stage || 'production') === 'staging' ? 'checked' : '';
+                        const apiUrl = (network.stage || 'production') === 'staging' ? 'api-user.stage.e2ro.com' : 'api-user.e2ro.com';
                         
                         networksHtml += `
                             <div style="background: rgba(0,40,80,.5); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(77,166,255,.2);">
@@ -1994,6 +1995,7 @@
                                     </label>
                                     <span style="font-size: 12px; font-weight: bold; color: ${stageColor};">${stageLabel}</span>
                                 </div>
+                                <div style="font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 10px; padding-left: 8px;">API: ${apiUrl}</div>
                                 <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                                     ${!network.authenticated ? `<button class="form-btn" style="padding: 4px 8px; font-size: 11px;" onclick="authenticateNetwork('${network.id}')">Authenticate with Email</button>` : ''}
                                     <button class="form-btn" style="padding: 4px 8px; font-size: 11px; background: ${network.active ? '#868e96' : '#4da6ff'};" onclick="toggleNetwork('${network.id}')">${network.active ? 'Disable' : 'Enable'}</button>
@@ -2097,7 +2099,7 @@
                 const data = await response.json();
                 if (data.success) {
                     showAlert(data.message, "success");
-                    manageNetworks();
+                    setTimeout(() => showNetworksManager(), 500);
                 } else {
                     showAlert(data.message, "error");
                 }
