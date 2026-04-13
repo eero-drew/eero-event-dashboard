@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+dashboard_venv/
+venv/
+env/
+ENV/
+
+# Configuration files (contain sensitive data)
+config.json
+.eero_token*
+*.log
+
+# Local development
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*_backup_*
+data_cache_backup_*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local configuration directory
+.minirack/
+
+# AWS deployment files (may contain sensitive data)
+lightsail_user_data.sh
+
+# Development artifacts
+*.orig
+*.rej
+.coverage
+htmlcov/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
