@@ -75,7 +75,7 @@ def save_config(config):
     try:
         with open(CONFIG_FILE, 'w') as f:
             json.dump(config, f, indent=2)
-        os.chmod(CONFIG_FILE, 0o600)
+        os.chmod(CONFIG_FILE, 0o664)
         return True
     except Exception as e:
         logging.error("Config save error: " + str(e))
@@ -158,6 +158,11 @@ def load_data_cache():
     return None
 
 class EeroAPI:
+    API_URLS = {
+        'production': 'api-user.e2ro.com',
+        'staging': 'api-user.stage.e2ro.com'
+    }
+
     def __init__(self):
         self.session = requests.Session()
         self.config = load_config()
@@ -167,6 +172,17 @@ class EeroAPI:
         # Load tokens for all networks
         self.network_tokens = {}
         self.load_all_tokens()
+    
+    def get_api_base(self, network_id=None):
+        """Get the API base URL for a specific network based on its stage"""
+        if network_id:
+            config = load_config()
+            for network in config.get('networks', []):
+                if network.get('id') == network_id:
+                    stage = network.get('stage', 'production')
+                    api_host = self.API_URLS.get(stage, self.API_URLS['production'])
+                    return "https://" + api_host + "/2.2"
+        return self.api_base
     
     def load_all_tokens(self):
         """Load API tokens for all configured networks"""
@@ -201,7 +217,8 @@ class EeroAPI:
     def get_network_info(self, network_id):
         """Get network information including name"""
         try:
-            url = self.api_base + "/networks/" + network_id
+            api_base = self.get_api_base(network_id)
+            url = api_base + "/networks/" + network_id
             response = self.session.get(url, headers=self.get_headers(network_id), timeout=10)
             response.raise_for_status()
             data = response.json()
@@ -218,9 +235,10 @@ class EeroAPI:
     def get_all_devices(self, network_id):
         """Get all devices for specific network with retry logic"""
         max_retries = 3
+        api_base = self.get_api_base(network_id)
         for attempt in range(max_retries):
             try:
-                url = self.api_base + "/networks/" + network_id + "/devices"
+                url = api_base + "/networks/" + network_id + "/devices"
                 response = self.session.get(url, headers=self.get_headers(network_id), timeout=15)
                 response.raise_for_status()
                 data = response.json()
@@ -1107,8 +1125,9 @@ def authenticate_network(network_id):
                 return jsonify({'success': False, 'message': 'Invalid email address'}), 400
             
             logging.info(f"Sending verification code to {email} for network {network_id}")
+            api_base = eero_api.get_api_base(network_id)
             response = requests.post(
-                f"https://{eero_api.api_url}/2.2/pro/login",
+                api_base + "/pro/login",
                 json={"login": email},
                 timeout=10
             )
@@ -1139,8 +1158,9 @@ def authenticate_network(network_id):
                 token = f.read().strip()
             
             # Verify code
+            api_base = eero_api.get_api_base(network_id)
             verify_response = requests.post(
-                f"https://{eero_api.api_url}/2.2/login/verify",
+                api_base + "/login/verify",
                 headers={"X-User-Token": token, "Content-Type": "application/x-www-form-urlencoded"},
                 data={"code": code},
                 timeout=10
@@ -1234,7 +1254,7 @@ def reauthorize():
             
             logging.info("Sending verification code to " + email)
             response = requests.post(
-                "https://" + eero_api.api_url + "/2.2/pro/login",
+                eero_api.api_base + "/pro/login",
                 json={"login": email},
                 timeout=10
             )
@@ -1270,14 +1290,14 @@ def reauthorize():
             verify_methods = [
                 # Method 1: Form data (original eero API format)
                 lambda: requests.post(
-                    "https://" + eero_api.api_url + "/2.2/login/verify",
+                    eero_api.api_base + "/login/verify",
                     headers={"X-User-Token": token, "Content-Type": "application/x-www-form-urlencoded"},
                     data={"code": code},
                     timeout=10
                 ),
                 # Method 2: JSON data
                 lambda: requests.post(
-                    "https://" + eero_api.api_url + "/2.2/login/verify",
+                    eero_api.api_base + "/login/verify",
                     headers={"X-User-Token": token, "Content-Type": "application/json"},
                     json={"code": code},
                     timeout=10
